@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>WebGL Demo 1</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+</body>
+<script type="shader-source" id="vertexShaderSource">
+  // 需要注意的是： GLSL 是强类型的语言，注意数值类型
+  void main(){
+    //声明顶点的位置坐标
+    gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+    //声明顶点的大小，大小只在点类型中生效
+    gl_PointSize = 10.0;
+  }
+</script>
+<script type="shader-source" id="fragmentShaderSoruce">
+  void main(){
+    //设置像素点的填充颜色为红色
+    //这里的1 实际为255.0/255.0 = 1.0
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); 
+  }
+</script>
+<script>
+
+  // 我们这里使用动态插入的方式，来使我们的编辑器能够获得ctx的语法提示
+  const canvas = document.createElement('canvas');
+  // 这里将canvas的大小设置为整个屏幕
+  const clientWidth = document.body.clientWidth;
+  const clientHeight = document.body.clientHeight;
+  canvas.height = clientHeight;
+  canvas.width = clientWidth;
+
+  document.querySelector('body').appendChild(canvas);
+
+  // 获取webgl的context 上下文
+  const ctx = canvas.getContext('webgl') || canvas.getContext("experimental-webgl");
+
+  // 获取顶点着色器源码
+  const vertexShaderSource = document.getElementById('vertexShaderSource').innerHTML;
+  // 创建顶点着色器对象
+  const vertexShader = ctx.createShader(ctx.VERTEX_SHADER);
+  // 将源码分配给顶点着色器对象
+  ctx.shaderSource(vertexShader, vertexShaderSource);
+  // 编译顶点着色器对象
+  ctx.compileShader(vertexShader);
+
+  // 获取片元着色器源码
+  const fragmentShaderSource = document.getElementById('fragmentShaderSoruce').innerHTML;
+  // 创建片元着色器对象
+  const fragmentShader = ctx.createShader(ctx.FRAGMENT_SHADER);
+  // 把源码分配给片元着色器
+  ctx.shaderSource(fragmentShader, fragmentShaderSource);
+  // 编译片元着色器对象
+  ctx.compileShader(fragmentShader);
+
+  // 创建着色器程序
+  const program = ctx.createProgram();
+  // 将顶点着色器附着在着色器程序上
+  ctx.attachShader(program, vertexShader);
+  // 将片元着色器附着在着色器程序上
+  ctx.attachShader(program, fragmentShader);
+  // 连接着色器程序
+  ctx.linkProgram(program);
+  // 使用着色器程序
+  ctx.useProgram(program);
+
+  // 设置清除画布的颜色
+  ctx.clearColor(0.0, 0.0, 0.0, 1.0);
+  // 清除画布
+  ctx.clear(ctx.COLOR_BUFFER_BIT);
+  // 开始绘制
+  // 这里传入了三个参数 mode, start, count
+  // mode : 绘制的图形类型 支持点POINTS， 线段LINES ，三角形TRIANGLES
+  // start : 从第几个点开始
+  // count : 绘制几个点
+  ctx.drawArrays(ctx.POINTS, 0, 1);
+</script>
