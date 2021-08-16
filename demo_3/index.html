@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Cube</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+</body>
+<!-- 顶点着色器资源 -->
+<script type="shader-source" id="vertexShaderSource">
+  // 设置浮点数精度为中等精度
+  precision mediump float;
+  // 接收来自JS传递过来的顶点坐标
+  attribute vec3 aPos;
+  // 接收顶点颜色
+  attribute vec4 aColor;
+  // 连接片元着色器
+  varying vec4 vColor;
+  // 矩阵变换
+  uniform mat4 uMatrix;
+
+  void main() {
+    gl_Position = uMatrix * vec4(aPos, 1);
+    // 传递顶点颜色给片元着色器
+    vColor = aColor;
+    gl_PointSize = 1.0;
+  }
+   
+</script>
+<!-- 片元着色器资源 -->
+<script type="shader-source" id="fragmentShaderSoruce">
+  // 设置浮点数精度为中等精度
+  precision mediump float;
+  // 连接顶点着色器
+  varying vec4 vColor;
+  
+  void main() {
+    // 设置点的颜色
+    gl_FragColor = vColor;
+  }
+  
+</script>
+<script>
+  const canvas = document.createElement('canvas');
+
+  const clientWidth = document.body.clientWidth;
+  const clientHeight = document.body.clientHeight;
+
+  canvas.width = clientWidth;
+  canvas.height = clientHeight;
+
+  document.querySelector('body').appendChild(canvas);
+
+  // 获取webgl的context 上下文
+  const ctx = canvas.getContext('webgl');
+
+  // 获取顶点着色器源码
+  const vertexShaderSource = document.getElementById('vertexShaderSource').innerHTML;
+  // 创建顶点着色器对象
+  const vertexShader = ctx.createShader(ctx.VERTEX_SHADER);
+  // 将源码分配给顶点着色器对象
+  ctx.shaderSource(vertexShader, vertexShaderSource);
+  // 编译顶点着色器对象
+  ctx.compileShader(vertexShader);
+
+  // 获取片元着色器源码
+  const fragmentShaderSoruce = document.getElementById('fragmentShaderSoruce').innerHTML;
+  // 创建着色器对象
+  const fragmentShader = ctx.createShader(ctx.FRAGMENT_SHADER);
+  // 将源码分配给片元着色器对象
+  ctx.shaderSource(fragmentShader, fragmentShaderSoruce);
+  // 编译片远着色器
+  ctx.compileShader(fragmentShader);
+
+
+  // 创建着色器程序
+  const program = ctx.createProgram();
+  // 将顶点着色器附着在着色器程序上
+  ctx.attachShader(program, vertexShader);
+  // 将片元着色器附着在着色器程序上
+  ctx.attachShader(program, fragmentShader);
+  // 连接着色器程序
+  ctx.linkProgram(program);
+  // 使用着色器程序
+  ctx.useProgram(program);
+
+  // 创建包含顶点数据坐标和颜色的数组
+  const positionPoints = [
+    // V0
+    -0.5, -0.5, 0.5, 1, 0, 0, 1,
+    0.5, -0.5, 0.5, 1, 0, 0, 1,
+    0.5, 0.5, 0.5, 1, 0, 0, 1,
+    -0.5, 0.5, 0.5, 1, 0, 0, 1,
+
+    // V1
+    -0.5, 0.5, 0.5, 1, 0, 0, 1,
+    -0.5, 0.5, -0.5, 1, 0, 0, 1,
+    -0.5, -0.5, -0.5, 1, 0, 0, 1,
+    -0.5, -0.5, 0.5, 1, 0, 0, 1,
+
+    // V2
+    0.5, 0.5, 0.5, 1, 0, 0, 1,
+    0.5, -0.5, 0.5, 1, 0, 0, 1,
+    0.5, -0.5, -0.5, 1, 0, 0, 1,
+    0.5, 0.5, -0.5, 1, 0, 0, 1,
+
+    // V3
+    0.5, 0.5, -0.5, 1, 0, 0, 1,
+    0.5, -0.5, -0.5, 1, 0, 0, 1,
+    -0.5, -0.5, -0.5, 1, 0, 0, 1,
+    -0.5, 0.5, -0.5, 1, 0, 0, 1,
+
+    // V4
+    -0.5, 0.5, 0.5, 1, 0, 0, 1,
+    0.5, 0.5, 0.5, 1, 0, 0, 1,
+    0.5, 0.5, -0.5, 1, 0, 0, 1,
+    -0.5, 0.5, -0.5, 1, 0, 0, 1,
+
+    // V5
+    -0.5, -0.5, 0.5, 1, 0, 0, 1,
+    -0.5, -0.5, -0.5, 1, 0, 0, 1,
+    0.5, -0.5, -0.5, 1, 0, 0, 1,
+    0.5, -0.5, 0.5, 1, 0, 0, 1,
+  ];
+
+  const indices = [0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16,
+    18, 19, 20, 21, 22, 20, 22, 23
+  ];
+
+  // 找到着色器中的变量
+  const uMatrix = ctx.getUniformLocation(program, 'uMatrix');
+  const aPos = ctx.getAttribLocation(program, 'aPos');
+  const aColor = ctx.getAttribLocation(program, 'aColor');
+
+  ctx.enableVertexAttribArray(aPos);
+  ctx.enableVertexAttribArray(aColor);
+
+  // 创建缓冲区
+  const buffer = ctx.createBuffer();
+  // 绑定缓冲区到当前缓冲区
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+  // 设置aPos 属性从缓冲区读取数据方式
+  // 读取顶点的格式
+  let pSize = 3; 
+  // 读取的数据格式
+  let pType = ctx.FLOAT; 
+  // 是否进行归一化
+  let pNormalize = false; 
+  // 读取数据的步长
+  let pStride = 28; 
+  // 读取数据的偏移量
+  let pOffset = 0;
+  ctx.vertexAttribPointer(aPos, pSize, pType, pNormalize, pStride, pOffset);
+  // 设置aColor属性从缓冲去读取数据的方式
+  let cSisze = 4;
+  let cType = ctx.FLOAT;
+  let cNormalize = false;
+  let cStride = 28;
+  let cOffset = 12;
+  ctx.vertexAttribPointer(aColor, cSisze, cType, cNormalize, cStride, cOffset);
+  // 向缓冲区传递数据
+  ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(positionPoints), ctx.STATIC_DRAW);
+
+  // 创建索引缓冲区
+  const indicesBuffer = ctx.createBuffer();
+  // 绑定索引缓冲区
+  ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+  // 向索引缓冲区传递索引数据
+  ctx.bufferData(ctx.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), ctx.STATIC_DRAW);
+
+  // 设置清除屏幕的颜色
+  ctx.clearColor(0.0, 0.0, 0.0, 1.0);
+  // 隐藏背面
+  ctx.enable(ctx.CULL_FACE);
+
+  // 获取宽高比
+  const aspect = canvas.width / canvas.height;
+
+  // 计算正交投影矩阵
+  const projectionMatrix = ortho(-aspect * 4, aspect * 4, -4, 4, 100, -100);
+
+
+  // 进行渲染
+  let playing = false;
+  let xAngle = 0;
+  let yAngle = 0;
+  let dstMatrix = identity();
+  let tmpMatrix = identity();
+
+  render();
+
+
+  /**
+   * 渲染函数
+   * */
+  function render() {
+    xAngle += 1;
+    yAngle += 1;
+    // 绕Y轴进行旋转矩阵
+    rotationY(degs2radians(yAngle), dstMatrix);
+    // 再绕 X 轴旋转
+    multiply(dstMatrix, rotationX(degs2radians(xAngle), tmpMatrix), dstMatrix);
+
+    // 模型投影矩阵
+    multiply(projectionMatrix, dstMatrix, dstMatrix);
+
+    ctx.uniformMatrix4fv(uMatrix, false, dstMatrix);
+
+    ctx.clear(ctx.COLOR_BUFFER_BIT);
+
+    ctx.drawElements(ctx.TRIANGLES, indices.length, ctx.UNSIGNED_SHORT, 0);
+
+    requestAnimationFrame(render);
+  }
+
+
+
+  /**
+   * 度数转为弧度
+   * */
+  function degs2radians(deg) {
+    var deg2radian = Math.PI / 180;
+    return deg2radian * deg;
+  }
+
+  /**
+   * 单位矩阵
+   * */
+  function identity(target) {
+    target = target || new Float32Array(16);
+    for (var i = 0; i < 16; i++) {
+      if (i % 5 == 0) {
+        target[i] = 1;
+      } else {
+        target[i] = 0;
+      }
+    }
+    return target;
+  }
+  /**
+   * 正交投影矩阵
+   * */
+  function ortho(left, right, bottom, top, near, far, target) {
+    target = target || new Float32Array(16);
+
+    target[0] = 2 / (right - left);
+    target[1] = 0;
+    target[2] = 0;
+    target[3] = 0;
+
+    target[4] = 0;
+    target[5] = 2 / (top - bottom);
+    target[6] = 0;
+    target[7] = 0;
+
+    target[8] = 0;
+    target[9] = 0;
+    target[10] = 2 / (near - far);
+    target[11] = 0;
+
+    target[12] = (left + right) / (left - right);
+    target[13] = (bottom + top) / (bottom - top);
+    target[14] = (near + far) / (near - far);
+    target[15] = 1;
+
+    return target;
+  }
+
+  /**
+   *  绕Y轴进行渲染
+   */
+  function rotationY(angle, target) {
+    target = target || new Float32Array(16);
+    var sin = Math.sin(angle);
+    var cos = Math.cos(angle);
+
+    target[0] = cos;
+    target[1] = 0;
+    target[2] = -sin;
+    target[3] = 0;
+    target[4] = 0;
+    target[5] = 1;
+    target[6] = 0;
+    target[7] = 0;
+    target[8] = sin;
+    target[9] = 0;
+    target[10] = cos;
+    target[11] = 0;
+    target[12] = 0;
+    target[13] = 0;
+    target[14] = 0;
+    target[15] = 1;
+
+    return target;
+  }
+
+  /**
+   * 绕X轴进行旋转
+   */
+  function rotationX(angle, target) {
+    target = target || new Float32Array(16);
+    var sin = Math.sin(angle);
+    var cos = Math.cos(angle);
+
+    target[0] = 1;
+    target[1] = 0;
+    target[2] = 0;
+    target[3] = 0;
+    target[4] = 0;
+    target[5] = cos;
+    target[6] = sin;
+    target[7] = 0;
+    target[8] = 0;
+    target[9] = -sin;
+    target[10] = cos;
+    target[11] = 0;
+    target[12] = 0;
+    target[13] = 0;
+    target[14] = 0;
+    target[15] = 1;
+
+    return target;
+  }
+
+  /**
+   * 矩阵相乘
+   */
+  function multiply(next, prev, target) {
+    target = target || new Float32Array(16);
+    // 第一列
+    var p00 = prev[0];
+    var p10 = prev[1];
+    var p20 = prev[2];
+    var p30 = prev[3];
+    // 第二列
+    var p01 = prev[4];
+    var p11 = prev[5];
+    var p21 = prev[6];
+    var p31 = prev[7];
+    // 第三列
+    var p02 = prev[8];
+    var p12 = prev[9];
+    var p22 = prev[10];
+    var p32 = prev[11];
+
+    // 第四列
+    var p03 = prev[12];
+    var p13 = prev[13];
+    var p23 = prev[14];
+    var p33 = prev[15];
+
+    // 第一行
+    var n00 = next[0];
+    var n01 = next[4];
+    var n02 = next[8];
+    var n03 = next[12];
+    // 第二行
+    var n10 = next[1];
+    var n11 = next[5];
+    var n12 = next[9];
+    var n13 = next[13];
+    // 第三行
+    var n20 = next[2];
+    var n21 = next[6];
+    var n22 = next[10];
+    var n23 = next[14];
+
+    // 第四行
+    var n30 = next[3];
+    var n31 = next[7];
+    var n32 = next[11];
+    var n33 = next[15];
+
+    target[0] = p00 * n00 + p10 * n01 + p20 * n02 + p30 * n03;
+    target[1] = p00 * n10 + p10 * n11 + p20 * n12 + p30 * n13;
+    target[2] = p00 * n20 + p10 * n21 + p20 * n22 + p30 * n23;
+    target[3] = p00 * n30 + p10 * n31 + p20 * n32 + p30 * n33;
+
+    target[4] = p01 * n00 + p11 * n01 + p21 * n02 + p31 * n03;
+    target[5] = p01 * n10 + p11 * n11 + p21 * n12 + p31 * n13;
+    target[6] = p01 * n20 + p11 * n21 + p21 * n22 + p31 * n23;
+    target[7] = p01 * n30 + p11 * n31 + p21 * n32 + p31 * n33;
+
+    target[8] = p02 * n00 + p12 * n01 + p22 * n02 + p32 * n03;
+    target[9] = p02 * n10 + p12 * n11 + p22 * n12 + p32 * n13;
+    target[10] = p02 * n20 + p12 * n21 + p22 * n22 + p32 * n23;
+    target[11] = p02 * n30 + p12 * n31 + p22 * n32 + p32 * n33;
+
+    target[12] = p03 * n00 + p13 * n01 + p23 * n02 + p33 * n03;
+    target[13] = p03 * n10 + p13 * n11 + p23 * n12 + p33 * n13;
+    target[14] = p03 * n20 + p13 * n21 + p23 * n22 + p33 * n23;
+    target[15] = p03 * n30 + p13 * n31 + p23 * n32 + p33 * n33;
+
+    return target;
+  }
+</script>
+
+</html>

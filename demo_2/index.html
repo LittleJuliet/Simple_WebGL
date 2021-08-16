@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>Simple WebGL</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+</body>
+<!-- 顶点着色器资源 -->
+<script type="shader-source" id="vertexShaderSource">
+    // 声明浮点数精度为中等精度
+    precision mediump float;
+    // 接收顶点坐标
+    attribute vec2 aPos;
+    // 接收浏览器窗口尺寸
+    attribute vec2 screenSize;
+    // 接收JS传递的顶点颜色
+    attribute vec4 aColor;
+    // 传递到片元着色器的颜色
+    varying vec4 vColor;
+    
+    void main() {
+      // 将 canvas 的坐标值 转换为 [-1.0, 1.0]的范围。
+      vec2 position = (aPos / screenSize) * 2.0 - 1.0;
+      // canvas的 Y 轴坐标方向和 设备坐标系的相反。
+      position = position * vec2(1.0, -1.0);
+      gl_Position = vec4(position, 0.0 , 1.0);
+      vColor = aColor;
+    }
+</script>
+<!-- 片元着色器资源 -->
+<script type="shader-source" id="fragmentShaderSoruce">
+  // 声明浮点数精度为中等精度
+  precision mediump float;
+  // 接收来自Javascript的颜色值
+  varying vec4 vColor;
+
+  void main() {
+    vec4 color = vColor / vec4(255, 255, 255, 1);
+    gl_FragColor = color;
+  }
+
+</script>
+<script>
+
+    // 我们这里使用动态插入的方式，来使我们的编辑器能够获得ctx的语法提示
+    const canvas = document.createElement('canvas');
+    // 这里将canvas的大小设置为整个屏幕
+    const clientWidth = document.body.clientWidth;
+    const clientHeight = document.body.clientHeight;
+    canvas.height = clientHeight;
+    canvas.width = clientWidth;
+
+    document.querySelector('body').appendChild(canvas);
+
+    // 获取webgl的context 上下文
+    const ctx = canvas.getContext('webgl');
+
+    // 获取顶点着色器源码
+    const vertexShaderSource = document.getElementById('vertexShaderSource').innerHTML;
+    // 创建顶点着色器对象
+    const vertexShader = ctx.createShader(ctx.VERTEX_SHADER);
+    // 将源码分配给顶点着色器对象
+    ctx.shaderSource(vertexShader, vertexShaderSource);
+    // 编译顶点着色器对象
+    ctx.compileShader(vertexShader);
+
+
+    // 获取片元着色器源码
+    const fragmentShaderSource = document.getElementById('fragmentShaderSoruce').innerHTML;
+    // 创建片元着色器对象
+    const fragmentShader = ctx.createShader(ctx.FRAGMENT_SHADER);
+    // 把源码分配给片元着色器
+    ctx.shaderSource(fragmentShader, fragmentShaderSource);
+    // 编译片元着色器对象
+    ctx.compileShader(fragmentShader);
+
+    // 创建着色器程序
+    const program = ctx.createProgram();
+    // 将顶点着色器附着在着色器程序上
+    ctx.attachShader(program, vertexShader);
+    // 将片元着色器附着在着色器程序上
+    ctx.attachShader(program, fragmentShader);
+    // 连接着色器程序
+    ctx.linkProgram(program);
+    // 使用着色器程序
+    ctx.useProgram(program);
+
+    const screenSize = ctx.getAttribLocation(program, 'screenSize');
+    ctx.vertexAttrib2f(screenSize, canvas.width, canvas.height);
+
+    // 顶点坐标数组
+    const positionPoints = [];
+
+    // 顶点颜色数组
+    const colorArrays = [];
+
+    const aPos = ctx.getAttribLocation(program, 'aPos');
+
+    const aColor = ctx.getAttribLocation(program, 'aColor');
+
+    // 创建坐标缓冲区
+    const positionBuffer = ctx.createBuffer();
+
+    // 将当前 buffer 设置为 postionBuffer，接下来对 buffer 的操作都是针对 positionBuffer 了。
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, positionBuffer);
+
+    // 设置 aPos 变量读取 positionBuffer 缓冲区的方式。
+    const pSize = 2;
+    const pType = ctx.FLOAT;
+    const pNormalize = false;
+    const pStride = 0;
+    const pOffset = 0;
+    ctx.vertexAttribPointer(
+      aPos, pSize, pType, pNormalize, pStride, pOffset);
+    ctx.enableVertexAttribArray(aPos);
+    // 创建 颜色信息 buffer
+    const colorBuffer = ctx.createBuffer();
+    // 将当前 buffer 设置为 postionBuffer，接下来对 buffer 的操作都是针对 positionBuffer 了。
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, colorBuffer);
+    // 设置 aPos 变量读取 positionBuffer 缓冲区的方式。
+    const size = 4;
+    const type = ctx.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    ctx.vertexAttribPointer(
+          aColor, size, type, normalize, stride, offset);
+
+    ctx.enableVertexAttribArray(aColor);
+    // 设置清除背景颜色
+    ctx.clearColor(0.0, 0.0, 0.0, 1.0);
+
+    canvas.addEventListener("click", e => {
+			positionPoints.push(e.pageX, e.pageY);
+			const color = randomColor();
+			colorArrays.push(color.r, color.g, color.b, color.a);
+			// 顶点信息为6个数据即3个顶点时执行绘制操作，因为三角形由三个顶点组成。
+			if(positionPoints.length % 6 == 0) {
+				//复制坐标信息到缓冲区中
+				ctx.bindBuffer(ctx.ARRAY_BUFFER, positionBuffer);
+				ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(positionPoints), ctx.STATIC_DRAW);
+				//复制颜色信息到缓冲区中。
+				ctx.bindBuffer(ctx.ARRAY_BUFFER, colorBuffer);
+				ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(colorArrays), ctx.STATIC_DRAW);
+				//重绘
+				render(ctx);
+			}
+		});
+
+    function randomColor() {
+      return {
+        r: Math.random() * 255,
+        g: Math.random() * 255,
+        b: Math.random() * 255,
+        a: Math.random() * 1
+      };
+    }
+
+    function render(ctx) {
+			ctx.clear(ctx.COLOR_BUFFER_BIT);
+			if(positionPoints.length > 0){
+        console.log("draw");
+				ctx.drawArrays(ctx.TRIANGLES, 0, positionPoints.length / 2);
+			}
+		}
+
+    render(ctx);
+
+</script>
+</html>

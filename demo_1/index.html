@@ -14,7 +14,7 @@
 <body>
 </body>
 <script type="shader-source" id="vertexShaderSource">
-  // 需要注意的是： GLSL 是强类型的语言，注意数值类型
+  // 需要注意的是: GLSL 是强类型的语言，注意数值类型
   void main(){
     //声明顶点的位置坐标
     gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
@@ -42,7 +42,7 @@
   document.querySelector('body').appendChild(canvas);
 
   // 获取webgl的context 上下文
-  const ctx = canvas.getContext('webgl') || canvas.getContext("experimental-webgl");
+  const ctx = canvas.getContext('webgl');
 
   // 获取顶点着色器源码
   const vertexShaderSource = document.getElementById('vertexShaderSource').innerHTML;
