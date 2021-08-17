@@ -30,18 +30,16 @@
       attribute vec4 aColor;
       // 传递到片元着色器的颜色
       varying vec4 vColor;
-      // 接收地图的尺寸
-      attribute float proportion;
 
       void main() {
         // 将 canvas 的坐标值 转换为 [-1.0, 1.0]的范围。
-        vec2 position = (aPos * proportion / screenSize) * 2.0 - 1.0;
+        vec2 position = (aPos / screenSize) * 2.0 - 1.0;
         // canvas的 Y 轴坐标方向和 设备坐标系的相反。
         position = position * vec2(1.0, -1.0);
         gl_Position = vec4(position, 0.0 , 1.0);
         vColor = aColor;
         //声明顶点的大小，大小只在点类型中生效
-        gl_PointSize = 1.0 * proportion;
+        gl_PointSize = 1.0;
       }
     </script>
 
@@ -73,14 +71,9 @@
       // 我们这里使用动态插入的方式，来使我们的编辑器能够获得ctx的语法提示
       const canvas = document.createElement("canvas");
 
-      // 这里将canvas的大小设置为整个屏幕
-      const clientWidth = document.body.clientWidth;
-      const clientHeight = document.body.clientHeight;
-      const proportion = Math.floor(clientWidth / map.mapData.width);
-      canvas.height = map.mapData.height * proportion;
-      canvas.width = map.mapData.width * proportion;
-
-      document.querySelector("body").appendChild(canvas);
+      // 这里将 canvas 的大小设置为地图大小
+      canvas.width = map.mapData.width;
+      canvas.height = map.mapData.height;
 
       // 获取webgl的context 上下文
       const ctx = canvas.getContext("webgl");
@@ -122,8 +115,8 @@
       ctx.vertexAttrib2f(screenSize, canvas.width, canvas.height);
 
       // 从 javaScript 往顶点着色器传 attribute 变量值
-      const proportionTemp = ctx.getAttribLocation(program, "proportion");
-      ctx.vertexAttrib1f(proportionTemp, proportion);
+      const mapSize = ctx.getAttribLocation(program, "mapSize");
+      ctx.vertexAttrib2f(mapSize, map.mapData.width, map.mapData.height);
 
       // 顶点坐标数组
       const positionPoints = [];
@@ -222,6 +215,11 @@
       // 清除颜色
       ctx.clear(ctx.COLOR_BUFFER_BIT);
       ctx.drawArrays(ctx.POINTS, 0, positionPoints.length / 2);
+
+      const image = new Image();
+      image.src = canvas.toDataURL('image/png');
+      document.body.appendChild(image);
+      image.width = screen.width;
     </script>
   </body>
 </html>
