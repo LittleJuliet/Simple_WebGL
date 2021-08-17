@@ -138,7 +138,7 @@
       const colorArrays = [];
       // 颜色配置对象
       const colorMap = JSON.parse(map.mapData.roomIdColorMap);
-      
+
       // 解析地图像素颜色
       for (let i = 0; i < map.mapData.map.length; i++) {
         const colorKey = `${map.mapData.map[i++]}${map.mapData.map[i]}`;
@@ -167,7 +167,7 @@
           rgbaArray255.push(1);
         }
         return rgbaArray255;
-      };
+      }
 
       const aPos = ctx.getAttribLocation(program, "aPos");
 
