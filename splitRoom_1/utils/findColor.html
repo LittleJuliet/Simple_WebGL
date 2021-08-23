@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <script>
+      const roomIdColorMap = {
+        10: "#ffF7797F",
+        11: "#ff515151",
+        13: "#00ffffff",
+        14: "#ffA6E670",
+        15: "#ff515151",
+        17: "#00ffffff",
+        19: "#ff515151",
+        21: "#ff515151",
+        23: "#00ffffff",
+        25: "#ff515151",
+        27: "#00ffffff",
+        29: "#ff515151",
+        31: "#ff515151",
+        33: "#00ffffff",
+        35: "#ff515151",
+        37: "#00ffffff",
+        39: "#ff515151",
+        41: "#ff515151",
+        43: "#00ffffff",
+        45: "#ff515151",
+        47: "#00ffffff",
+        49: "#ff515151",
+        51: "#ff515151",
+        53: "#00ffffff",
+        55: "#ff515151",
+        57: "#00ffffff",
+        59: "#ff515151",
+        61: "#ff515151",
+        63: "#00ffffff",
+        65: "#ff515151",
+        67: "#00ffffff",
+        69: "#ff515151",
+        71: "#ff515151",
+        73: "#00ffffff",
+        75: "#ff515151",
+        77: "#00ffffff",
+        79: "#ff515151",
+        81: "#ff515151",
+        83: "#00ffffff",
+        85: "#ff515151",
+        87: "#00ffffff",
+        89: "#ff515151",
+        91: "#ff515151",
+        93: "#00ffffff",
+        95: "#ff515151",
+        97: "#00ffffff",
+        99: "#ff515151",
+        "01": "#ff515151",
+        "03": "#00ffffff",
+        "05": "#ff515151",
+        "07": "#00ffffff",
+        "09": "#ff515151",
+        "0b": "#00ffffff",
+        "0d": "#ff515151",
+        "0f": "#00ffffff",
+        "1b": "#00ffffff",
+        "1d": "#ff515151",
+        "1f": "#00ffffff",
+        "2b": "#00ffffff",
+        "2d": "#ff515151",
+        "2f": "#00ffffff",
+        "3b": "#00ffffff",
+        "3d": "#ff515151",
+        "3f": "#00ffffff",
+        "4b": "#00ffffff",
+        "4d": "#ff515151",
+        "4f": "#00ffffff",
+        "5b": "#00ffffff",
+        "5d": "#ff515151",
+        "5f": "#00ffffff",
+        "6b": "#00ffffff",
+        "6d": "#ff515151",
+        "6f": "#00ffffff",
+        "7b": "#00ffffff",
+        "7d": "#ff515151",
+        "7f": "#00ffffff",
+        "8b": "#00ffffff",
+        "8d": "#ff515151",
+        "8f": "#00ffffff",
+        "9b": "#00ffffff",
+        "9d": "#ff515151",
+        "9f": "#00ffffff",
+        a1: "#ff515151",
+        a3: "#00ffffff",
+        a5: "#ff515151",
+        a7: "#00ffffff",
+        a9: "#ff515151",
+        ab: "#00ffffff",
+        ad: "#ff515151",
+        af: "#00ffffff",
+        b1: "#ff515151",
+        b3: "#00ffffff",
+        b5: "#ff515151",
+        b7: "#00ffffff",
+        b9: "#ff515151",
+        bb: "#00ffffff",
+        bd: "#ff515151",
+        bf: "#00ffffff",
+        c1: "#ff515151",
+        c3: "#00ffffff",
+        c5: "#ff515151",
+        c7: "#00ffffff",
+        c9: "#ff515151",
+        cb: "#00ffffff",
+        cd: "#ff515151",
+        cf: "#00ffffff",
+        d1: "#ff515151",
+        d3: "#00ffffff",
+        d5: "#ff515151",
+        d7: "#00ffffff",
+        d9: "#ff515151",
+        db: "#00ffffff",
+        dd: "#ff515151",
+        df: "#00ffffff",
+        e1: "#ff515151",
+        e3: "#00ffffff",
+        e5: "#ff515151",
+        e7: "#00ffffff",
+        e9: "#ff515151",
+        eb: "#00ffffff",
+        ed: "#ff515151",
+        ef: "#00ffffff",
+        f0: "#ffd0d0d0",
+        f1: "#ff515151",
+        f3: "#00ffffff",
+        f4: "#ffd0d0d1",
+        f5: "#ff515151",
+        f7: "#00ffffff",
+        f8: "#ffd0d0d2",
+        f9: "#ff515151",
+        fb: "#00ffffff",
+        fc: "#ffd0d0d3",
+        fd: "#ff515151",
+        ff: "#00ffffff",
+        "04": "#ffFACD2A",
+        "08": "#ff46A68E",
+        "0c": "#ff218BFC",
+      };
+
+      function hexColorToRgba(hexColor, alphaMaxVal = 1) {
+        hexColor = hexColor.replace("#", "");
+        //用于分割16进制色彩通道
+        let reg = new RegExp("\\w{1,2}", "g");
+        //分割颜色通道
+        let rgbaArray255 = hexColor.match(reg);
+        rgbaArray255 = rgbaArray255.map((channel, index) => {
+          //计算每个通道的10进制值
+          let colorVal = parseInt(channel, 16);
+          if (index === 3) {
+            //这是alpha通道
+            return Math.round((colorVal / (255 / alphaMaxVal)) * 100) / 100;
+          }
+          return colorVal;
+        });
+        if (rgbaArray255.length === 3) {
+          rgbaArray255.push(1);
+        }
+        return rgbaArray255;
+      }
+
+      const colorArrays = [];
+      for (const key in roomIdColorMap) {
+        colorArrays.push({
+          key,
+          color: hexColorToRgba(roomIdColorMap[key]),
+        });
+      }
+
+      const container = document.getElementById("container");
+      colorArrays.forEach((item, index) => {
+        const element = document.createElement("div");
+        element.style.display = "inline-block";
+        element.style.width = "50px";
+        element.style.height = "50px";
+        element.style.backgroundColor = `rgba(${item.color[0]}, ${item.color[1]}, ${item.color[2]}, ${item.color[3]})`;
+        element.innerText = item.key;
+        container.appendChild(element);
+      });
+    </script>
+  </body>
+</html>

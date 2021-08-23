@@ -35,7 +35,7 @@
     vColor = aColor;
     gl_PointSize = 1.0;
   }
-   
+
 </script>
 <!-- 片元着色器资源 -->
 <script type="shader-source" id="fragmentShaderSoruce">
@@ -48,7 +48,7 @@
     // 设置点的颜色
     gl_FragColor = vColor;
   }
-  
+
 </script>
 <script>
   const canvas = document.createElement('canvas');
@@ -149,6 +149,7 @@
   const buffer = ctx.createBuffer();
   // 绑定缓冲区到当前缓冲区
   ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+
   // 设置aPos 属性从缓冲区读取数据方式
   // 读取顶点的格式
   let pSize = 3; 
@@ -161,6 +162,7 @@
   // 读取数据的偏移量
   let pOffset = 0;
   ctx.vertexAttribPointer(aPos, pSize, pType, pNormalize, pStride, pOffset);
+
   // 设置aColor属性从缓冲去读取数据的方式
   let cSisze = 4;
   let cType = ctx.FLOAT;
@@ -168,6 +170,7 @@
   let cStride = 28;
   let cOffset = 12;
   ctx.vertexAttribPointer(aColor, cSisze, cType, cNormalize, cStride, cOffset);
+  
   // 向缓冲区传递数据
   ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(positionPoints), ctx.STATIC_DRAW);
 
