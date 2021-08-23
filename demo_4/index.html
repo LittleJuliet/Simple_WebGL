@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Texture WebGL</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #container {
+      position: absolute;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+</body>
+<script src="../library/webgl-helper.js"></script>
+<script src="../library/texture.js"></script>
+<!-- 顶点着色器资源 -->
+<script type="shader-source" id="vertexShaderSource">
+  precision mediump float;
+   attribute vec2 aPos;
+   uniform vec2 screenSize;
+   attribute vec2 aUv;
+   varying vec2 vUv;
+
+   void main() {
+     vec2 position = (aPos / screenSize) * 2.0 - 1.0;
+     position = position * vec2(1.0, -1.0);
+     gl_Position = vec4(position, 0, 1);
+     vUv = aUv;
+   }
+</script>
+<!-- 片元着色器资源 -->
+<script type="shader-source" id="fragmentShaderSoruce">
+  precision mediump float;
+    varying vec2 vUv;
+    uniform sampler2D texture;
+    void main() {
+      gl_FragColor = texture2D(texture, vec2(vUv.x, vUv.y));
+    }
+</script>
+<script>
+  
+  window.onload = main;
+
+  function main() {
+    // 创建画布
+    var canvas = WebGLHelper.createWebGLCanvas('container');
+
+    // 获得WebGL的上下文
+    var ctx = WebGLHelper.getWebGLContext(canvas);
+
+    // 获得着色器对象
+    var program = WebGLHelper.initWebGLProgram(ctx, 'vertexShaderSource', 'fragmentShaderSoruce');
+
+    var uniformTexture = ctx.getUniformLocation(program, "texture");
+    var screenSize = ctx.getUniformLocation(program, "screenSize");
+    ctx.uniform2f(screenSize, canvas.width, canvas.height);
+
+    var aPos = ctx.getAttribLocation(program, "aPos");
+    var aUv = ctx.getUniformLocation(program, "aUv");
+    ctx.enableVertexAttribArray(aPos);
+    ctx.enableVertexAttribArray(aUv);
+
+    var positions = new Float32Array(
+      [
+        15, 15, 0, 0, 15, 32, 0, 1,
+        32, 32, 1, 1, 15, 15, 0, 0,
+        32, 32, 1, 1, 32, 15, 1, 0
+      ]);
+
+    var BYTES = positions.BYTES_PER_ELEMENT;
+    var buffer = ctx.createBuffer();
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+    ctx.vertexAttribPointer(aPos, 2, ctx.FLOAT, false, BYTES * 4, 0);
+    ctx.vertexAttribPointer(aUv, 2, ctx.FLOAT, false, BYTES * 4, BYTES * 2);
+    ctx.bufferData(
+      ctx.ARRAY_BUFFER,
+      positions,
+      ctx.STATIC_DRAW
+    );
+
+    ctx.clearColor(0, 0, 0, 1);
+
+    function render() {
+      ctx.clear(ctx.COLOR_BUFFER_BIT);
+      ctx.drawArrays(ctx.TRIANGLES, 0, positions.length / 4);
+    }
+
+    Texture.createTexture(ctx, '../resource/elec.png', uniformTexture, function () {
+      render();
+    });
+
+  }
+</script>
+
+</html>
